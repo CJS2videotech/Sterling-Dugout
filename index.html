@@ -499,7 +499,16 @@ footer{
     <button class="sport-tab" onclick="switchSport('mls')" id="tab-mls">
       <div class="tab-dot mls"></div>MLS
     </button>
-    <div style="margin-left:auto;">
+    <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+      <div style="display:flex; background:rgba(0,0,0,0.4); border-radius:100px; padding:2px; border:1px solid rgba(255,255,255,0.1);">
+        <button class="rbtn" style="border:none;background:transparent;padding:4px 10px;" onclick="changeDay(-1)">
+          <span>◄</span>
+        </button>
+        <div id="day-disp" style="color:var(--gold); font-size:12px; font-weight:700; text-transform:uppercase; display:flex; align-items:center; padding:0 8px; min-width:80px; justify-content:center;">Today</div>
+        <button class="rbtn" style="border:none;background:transparent;padding:4px 10px;" onclick="changeDay(1)">
+          <span>►</span>
+        </button>
+      </div>
       <button class="rbtn" id="btn-refresh" onclick="refreshAll()">
         <div class="spin"></div>Refresh
       </button>
@@ -595,13 +604,16 @@ footer{
   <div class="terp-section glass">
     <div class="terp-header">
       <div class="s-pip" style="background:#22c55e;"></div>
-      <span class="canna-icon md"></span> Sterling Lure — Terpene Advisor
+      <span class="canna-icon md"></span> Terpene Advisor
     </div>
     <div class="terp-content">
       <div class="terp-grid" id="terp-grid">
         <!-- Populated by JS based on game state -->
       </div>
-      <div class="terp-sterling"><span class="canna-icon sm"></span> Crafted for Sterling / Rock Falls, IL · Cannabis Terpene Intelligence <span class="canna-icon sm"></span></div>
+      <div class="terp-sterling" style="margin-bottom: 8px;"><span class="canna-icon sm"></span> Crafted for Sterling / Rock Falls, IL · Cannabis Terpene Intelligence <span class="canna-icon sm"></span></div>
+      <div id="canna-news-ticker" style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;color:#22c55e;text-align:center;padding-top:10px;border-top:1px solid rgba(34,197,94,0.2);margin-top:10px;transition:opacity 0.5s;">
+        <!-- Populated by JS -->
+      </div>
     </div>
   </div>
 
@@ -639,10 +651,20 @@ const CHICAGO_TEAMS = {
     { name:'Bears', espnId:'3', abbr:'CHI', color:'#0b162a', accent:'#c83803' }
   ],
   nhl: [
-    { name:'Blackhawks', espnId:'16', abbr:'CHI', color:'#cf0a2c', accent:'#cf0a2c' }
+    { name:'Blackhawks', espnId:'4', abbr:'CHI', color:'#cf0a2c', accent:'#cf0a2c' }
   ],
   mls: [
     { name:'Fire', espnId:'182', abbr:'CHI', color:'#7ccdef', accent:'#ff0000' }
+  ],
+  ncaamb: [
+    { name:'Illinois', espnId:'356', abbr:'ILL', color:'#e84a27', accent:'#00205b' },
+    { name:'Northwestern', espnId:'77', abbr:'NU', color:'#4e2a84', accent:'#4e2a84' },
+    { name:'DePaul', espnId:'305', abbr:'DEP', color:'#0057b8', accent:'#ff0000' },
+    { name:'Loyola', espnId:'2350', abbr:'LUC', color:'#922247', accent:'#f0c226' },
+    { name:'Illinois State', espnId:'2287', abbr:'ILST', color:'#ce1126', accent:'#f9dd16' },
+    { name:'Bradley', espnId:'71', abbr:'BRAD', color:'#a50000', accent:'#a50000' },
+    { name:'Southern Illinois', espnId:'79', abbr:'SIU', color:'#720000', accent:'#720000' },
+    { name:'Northern Illinois', espnId:'2459', abbr:'NIU', color:'#cc0000', accent:'#000000' }
   ]
 };
 
@@ -652,20 +674,51 @@ const SPORT_MAP = {
   nba: { sport:'basketball', league:'nba' },
   nfl: { sport:'football', league:'nfl' },
   nhl: { sport:'hockey', league:'nhl' },
-  mls: { sport:'soccer', league:'usa.1' }
+  mls: { sport:'soccer', league:'usa.1' },
+  ncaamb: { sport:'basketball', league:'mens-college-basketball' }
 };
 
 let activeSport = 'mlb';
 let allGamesCache = {};
+let dayOffset = 0; // 0 = today, negative = past, positive = future
+
+function changeDay(delta) {
+  dayOffset += delta;
+  const disp = document.getElementById('day-disp');
+  if(disp) {
+    if(dayOffset === 0) disp.innerText = 'Today';
+    else if(dayOffset === -1) disp.innerText = 'Yesterday';
+    else if(dayOffset === 1) disp.innerText = 'Tomorrow';
+    else disp.innerText = dayOffset < 0 ? Math.abs(dayOffset) + ' Days Ago' : 'In ' + dayOffset + ' Days';
+  }
+  
+  // Clear grids for visual feedback that we are loading a new day
+  ['mlb','nba','nfl','nhl','mls'].forEach(s => {
+    const el = document.getElementById('scores-'+s);
+    if(el) el.innerHTML = '<div class="no-game glass">Loading...</div>';
+  });
+  refreshAll();
+}
 
 // ── HELPERS ──
+function isMajorEvent(event) {
+  const comp = event.competitions[0];
+  const notes = (comp.notes || []).map(n => n.headline || n.type || '').join(' ').toLowerCase();
+  const searchStr = (event.name + ' ' + event.shortName + ' ' + notes).toLowerCase();
+  
+  const keywords = ['super bowl', 'world series', 'stanley cup', 'championship', 'final four', 'college football playoff', 'ncaa men\'s', ' nit ', 'national invitation tournament'];
+  return keywords.some(k => searchStr.includes(k));
+}
+
 function pad(n){ return String(n).padStart(2,'0'); }
 function todayStr(){
   const d=new Date();
+  d.setDate(d.getDate() + dayOffset);
   return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
 }
 function todayISO(){
   const d=new Date();
+  d.setDate(d.getDate() + dayOffset);
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
 function fmtTime(iso){
@@ -774,7 +827,10 @@ async function loadScores(sport){
   const url = `${ESPN_BASE}/${s}/${l}/scoreboard?dates=${todayStr()}`;
 
   const el = document.getElementById('scores-'+sport);
-  el.innerHTML = '<div class="no-game glass">Loading...</div>';
+  // Only show loading if empty, preventing jarring layout jumps on 60s background refresh
+  if(el && el.innerHTML.trim() === '') {
+    el.innerHTML = '<div class="no-game glass">Loading...</div>';
+  }
 
   try {
     const r = await fetch(url);
@@ -782,8 +838,9 @@ async function loadScores(sport){
     const events = data.events || [];
 
     // Filter for Chicago teams
-    const chicagoIds = CHICAGO_TEAMS[sport].map(t => t.espnId);
+    const chicagoIds = CHICAGO_TEAMS[sport] ? CHICAGO_TEAMS[sport].map(t => t.espnId) : [];
     const chicagoGames = events.filter(ev => {
+      if(!ev.competitions || ev.competitions.length === 0) return false;
       const comp = ev.competitions[0];
       return comp.competitors.some(c => chicagoIds.includes(String(c.team.id)));
     });
@@ -792,13 +849,18 @@ async function loadScores(sport){
     allGamesCache[sport] = events;
 
     if(chicagoGames.length === 0){
-      el.innerHTML = '<div class="no-game glass">No Chicago games today</div>';
+      if(el) el.innerHTML = '<div class="no-game glass">No Chicago games ' + (dayOffset === 0 ? 'today' : 'yesterday') + '</div>';
       return;
     }
 
-    el.innerHTML = chicagoGames.map(ev => renderGameCard(ev, sport)).join('');
+    const newHTML = chicagoGames.map(ev => renderGameCard(ev, sport)).join('');
+    if(el && el.innerHTML !== newHTML) {
+       el.innerHTML = newHTML;
+    }
   } catch(e){
-    el.innerHTML = '<div class="no-game glass">Error loading scores</div>';
+    if(el && (el.innerHTML.trim() === '' || el.innerHTML.includes('Loading...'))) {
+      el.innerHTML = '<div class="no-game glass">Error loading scores</div>';
+    }
   }
 }
 
@@ -821,20 +883,38 @@ function populateGamePicker(){
   sel.innerHTML = '<option value="">— Select a game —</option>';
 
   // Gather all today's Chicago games across all sports
+  let gameCount = 0;
   Object.keys(allGamesCache).forEach(sport => {
     const events = allGamesCache[sport] || [];
     const chicagoIds = CHICAGO_TEAMS[sport].map(t => t.espnId);
     events.forEach(ev => {
       const comp = ev.competitions[0];
+      const status = comp.status || ev.status;
+      
+      // Only allow picking for games that haven't started yet
+      if(status?.type?.state !== 'pre') return;
+
       const isChicago = comp.competitors.some(c => chicagoIds.includes(String(c.team.id)));
-      if(!isChicago) return;
+      const isMajor = isMajorEvent(ev);
+      
+      if(!isChicago && !isMajor) return;
 
       const home = comp.competitors.find(c => c.homeAway === 'home');
       const away = comp.competitors.find(c => c.homeAway === 'away');
-      const label = `[${sport.toUpperCase()}] ${away.team.abbreviation} @ ${home.team.abbreviation}`;
+      
+      let badge = '';
+      if(isMajor && !isChicago) badge = '🏆 ';
+      else if(sport === 'ncaamb') badge = '🏀 ';
+
+      const label = `${badge}[${sport.toUpperCase()}] ${away.team.abbreviation || away.team.shortDisplayName} @ ${home.team.abbreviation || home.team.shortDisplayName}`;
       sel.innerHTML += `<option value="${ev.id}" data-sport="${sport}" data-home-id="${home.team.id}" data-home-name="${home.team.shortDisplayName}" data-away-id="${away.team.id}" data-away-name="${away.team.shortDisplayName}">${label}</option>`;
+      gameCount++;
     });
   });
+
+  if (gameCount === 0) {
+    sel.innerHTML = '<option value="">No upcoming games to pick</option>';
+  }
 
   sel.onchange = function(){
     const opt = sel.options[sel.selectedIndex];
@@ -888,16 +968,30 @@ function submitPick(){
   winnerSel.innerHTML = '<option value="">Select game first</option>';
 }
 
-function resolvePickResults(){
+async function resolvePickResults(){
   const picks = getPicks();
   let changed = false;
 
-  picks.forEach(pick => {
-    if(pick.result !== 'pending') return;
+  for(let i=0; i<picks.length; i++){
+    const pick = picks[i];
+    if(pick.result !== 'pending') continue;
 
     const sportGames = allGamesCache[pick.sport] || [];
-    const game = sportGames.find(ev => ev.id === pick.gameId);
-    if(!game) return;
+    let game = sportGames.find(ev => ev.id === pick.gameId);
+    
+    // If game is not in today's cache, fetch from ESPN directly to resolve past pending picks
+    if(!game){
+      try {
+        const { sport: s, league: l } = SPORT_MAP[pick.sport];
+        const r = await fetch(`${ESPN_BASE}/${s}/${l}/summary?event=${pick.gameId}`);
+        const data = await r.json();
+        if(data.header && data.header.competitions) {
+          game = { competitions: data.header.competitions, status: data.header.competitions[0].status };
+        }
+      } catch(e) { console.error('Failed to resolve past pick', e); }
+    }
+
+    if(!game) continue;
 
     const comp = game.competitions[0];
     const status = comp.status || game.status;
@@ -911,15 +1005,15 @@ function resolvePickResults(){
       const awayScore = parseInt(away.score || 0);
 
       let winnerId = null;
-      if(homeScore > awayScore) winnerId = String(home.team.id);
-      else if(awayScore > homeScore) winnerId = String(away.team.id);
+      if(homeScore > awayScore) winnerId = String(home.team.id || home.id);
+      else if(awayScore > homeScore) winnerId = String(away.team.id || away.id);
 
       if(winnerId){
         pick.result = (String(pick.teamPicked) === winnerId) ? 'correct' : 'wrong';
         changed = true;
       }
     }
-  });
+  }
 
   if(changed){
     savePicks(picks);
@@ -1019,7 +1113,7 @@ async function refreshAll(){
   const btn = document.getElementById('btn-refresh');
   if(btn) btn.classList.add('is-loading');
 
-  const sports = ['mlb','nba','nfl','nhl','mls'];
+  const sports = ['mlb','nba','nfl','nhl','mls','ncaamb'];
   await Promise.all(sports.map(s => loadScores(s)));
 
   populateGamePicker();
@@ -1284,6 +1378,31 @@ function renderTerpenes(){
   el.innerHTML = html;
 }
 
+const CANNABIS_NEWS = [
+  "Illinois cannabis sales generated over $417 million in state tax revenue in 2023, funding local communities and infrastructure.",
+  "Studies show medical cannabis access is associated with significantly lower rates of opioid prescriptions and use.",
+  "Researchers in Israel found cannabis can significantly reduce tremors and pain for patients with Parkinson's Disease.",
+  "Hemp, a form of cannabis, absorbs more CO2 per hectare than any forest or commercial crop, making it an incredible tool against climate change.",
+  "A recent study linked regular cannabis use to lower fasting insulin levels and smaller waist circumferences.",
+  "Cannabis legalization in multiple states has led to tens of thousands of non-violent marijuana convictions being expunged.",
+  "CBD has been FDA-approved to treat two severe forms of childhood epilepsy, dramatically reducing seizure frequency.",
+  "Legal cannabis is currently one of the fastest-growing job markets in the US, employing nearly half a million Americans.",
+  "Veterans report significant improvements in PTSD symptoms and sleep quality when utilizing medical cannabis therapies.",
+  "Terpenes—the aromatic compounds in cannabis—are being studied for their powerful anti-inflammatory and anti-anxiety therapeutic benefits."
+];
+let newsIndex = 0;
+
+function rotateNews() {
+  const el = document.getElementById('canna-news-ticker');
+  if(!el) return;
+  el.style.opacity = 0;
+  setTimeout(() => {
+    el.innerHTML = `📰 <strong style="color:#fff;">GOOD NEWS:</strong> ${CANNABIS_NEWS[newsIndex]}`;
+    el.style.opacity = 1;
+    newsIndex = (newsIndex + 1) % CANNABIS_NEWS.length;
+  }, 500);
+}
+
 // ═══════════════════════════════════════
 //  SAUK VALLEY LORE TICKER
 // ═══════════════════════════════════════
@@ -1313,13 +1432,15 @@ function rotateLore() {
 // ── INIT ──
 refreshAll().then(() => renderTerpenes());
 rotateLore();
+rotateNews();
 setInterval(async () => {
-  const sports = ['mlb','nba','nfl','nhl','mls'];
+  const sports = ['mlb','nba','nfl','nhl','mls','ncaamb'];
   await Promise.all(sports.map(s => loadScores(s)));
   resolvePickResults();
   renderTerpenes();
 }, 60000);
 setInterval(rotateLore, 12000); // Rotate local lore every 12 seconds
+setInterval(rotateNews, 15000); // Rotate cannabis news every 15 seconds
 
 </script>
 </body>
