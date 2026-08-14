@@ -1026,10 +1026,13 @@ function renderLeaderboard(){
   const picks = getPicks();
   const el = document.getElementById('lb-content');
 
-  const stats = { cj: { correct:0, total:0, streak:0 }, jesse: { correct:0, total:0, streak:0 } };
+  // Dynamically get unique players ('cj' and 'jesse' are the default known players)
+  const players = [...new Set(['cj', 'jesse', ...picks.map(p => p.who)])];
+  const stats = {};
 
-  // Calculate stats
-  ['cj','jesse'].forEach(who => {
+  // Calculate stats dynamically
+  players.forEach(who => {
+    stats[who] = { correct: 0, total: 0, streak: 0 };
     const userPicks = picks.filter(p => p.who === who).sort((a,b) => a.date.localeCompare(b.date));
     let currentStreak = 0;
     userPicks.forEach(p => {
@@ -1039,42 +1042,49 @@ function renderLeaderboard(){
     stats[who].streak = currentStreak;
   });
 
-  const cjPct = stats.cj.total > 0 ? ((stats.cj.correct/stats.cj.total)*100).toFixed(0) : '0';
-  const jessePct = stats.jesse.total > 0 ? ((stats.jesse.correct/stats.jesse.total)*100).toFixed(0) : '0';
+  // Determine highest correct picks score
+  const maxCorrect = Math.max(0, ...players.map(who => stats[who].correct));
+  const leaders = players.filter(who => stats[who].correct === maxCorrect);
+  const isTied = leaders.length > 1;
+  const hasPicks = Math.max(0, ...players.map(who => stats[who].total)) > 0;
 
-  const cjLeads = stats.cj.correct > stats.jesse.correct;
-  const jesseLeads = stats.jesse.correct > stats.cj.correct;
-  const tied = stats.cj.correct === stats.jesse.correct;
+  // Static profile details for the original core users, generating fallbacks for newly added players
+  const playerProfiles = {
+    cj: { name: 'CJ', img: 'assets/cj.jpg', color: '#cc3433', bg: '#0e3386', fallbackText: 'CJ' },
+    jesse: { name: 'Jesse', img: 'assets/Jesse.jpg', color: '#c83803', bg: '#c83803', fallbackText: 'JES' }
+  };
 
-  el.innerHTML = `
-    <div class="lb-card ${cjLeads?'leader':''}">
-      <img src="assets/cj.jpg" class="lb-avatar" alt="CJ" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 80%22><rect fill=%22%230e3386%22 width=%2280%22 height=%2280%22/><text x=%2240%22 y=%2250%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2230%22 font-family=%22sans-serif%22>CJ</text></svg>'">
-      <div class="lb-info">
-        <div class="lb-name" style="color:#cc3433;">CJ</div>
-        <div class="lb-stats">
-          <span><span class="lb-stat-val">${stats.cj.correct}</span> W</span>
-          <span><span class="lb-stat-val">${stats.cj.total - stats.cj.correct}</span> L</span>
-          <span><span class="lb-stat-val">${cjPct}%</span></span>
-          <span>🔥 ${stats.cj.streak}</span>
+  const html = players.map(who => {
+    const s = stats[who];
+    const pct = s.total > 0 ? ((s.correct / s.total) * 100).toFixed(0) : '0';
+    const isLeader = s.correct === maxCorrect && s.total > 0 && !isTied;
+
+    const prof = playerProfiles[who] || {
+      name: who.toUpperCase(),
+      img: `assets/${who}.jpg`,
+      color: '#ffffff',
+      bg: '#333333',
+      fallbackText: who.substring(0,3).toUpperCase()
+    };
+
+    return `
+      <div class="lb-card ${isLeader ? 'leader' : ''}">
+        <img src="${prof.img}" class="lb-avatar" alt="${prof.name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 80%22><rect fill=%22%23${prof.bg.replace('#', '')}%22 width=%2280%22 height=%2280%22/><text x=%2240%22 y=%2250%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22 font-family=%22sans-serif%22>${prof.fallbackText}</text></svg>'">
+        <div class="lb-info">
+          <div class="lb-name" style="color:${prof.color};">${prof.name}</div>
+          <div class="lb-stats">
+            <span><span class="lb-stat-val">${s.correct}</span> W</span>
+            <span><span class="lb-stat-val">${s.total - s.correct}</span> L</span>
+            <span><span class="lb-stat-val">${pct}%</span></span>
+            <span>🔥 ${s.streak}</span>
+          </div>
         </div>
+        ${isLeader ? '<div class="lb-trophy">🏆</div>' : ''}
       </div>
-      ${cjLeads ? '<div class="lb-trophy">🏆</div>' : ''}
-    </div>
-    <div class="lb-card ${jesseLeads?'leader':''}">
-      <img src="assets/Jesse.jpg" class="lb-avatar" alt="Jesse" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 80%22><rect fill=%22%23c83803%22 width=%2280%22 height=%2280%22/><text x=%2240%22 y=%2250%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22 font-family=%22sans-serif%22>JES</text></svg>'">
-      <div class="lb-info">
-        <div class="lb-name" style="color:#c83803;">Jesse</div>
-        <div class="lb-stats">
-          <span><span class="lb-stat-val">${stats.jesse.correct}</span> W</span>
-          <span><span class="lb-stat-val">${stats.jesse.total - stats.jesse.correct}</span> L</span>
-          <span><span class="lb-stat-val">${jessePct}%</span></span>
-          <span>🔥 ${stats.jesse.streak}</span>
-        </div>
-      </div>
-      ${jesseLeads ? '<div class="lb-trophy">🏆</div>' : ''}
-    </div>
-    ${tied && stats.cj.total > 0 ? '<div style="text-align:center;font-family:Oswald,sans-serif;font-size:12px;color:var(--gold);letter-spacing:1px;margin-top:.5rem;">⚡ TIED ⚡</div>' : ''}
-  `;
+    `;
+  }).join('');
+
+  el.innerHTML = html + (isTied && hasPicks ? '<div style="text-align:center;font-family:Oswald,sans-serif;font-size:12px;color:var(--gold);letter-spacing:1px;margin-top:.5rem;">⚡ TIED ⚡</div>' : '');
 }
 
 function renderPickHistory(){
