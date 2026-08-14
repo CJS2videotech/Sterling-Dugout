@@ -518,26 +518,7 @@ footer{
 
 <!-- MAIN CONTENT -->
 <div class="main-wrap">
-  <!-- MLB Panel -->
-  <div class="sport-panel active" id="panel-mlb">
-    <div class="scoreboard-grid" id="scores-mlb"></div>
-  </div>
-  <!-- NBA Panel -->
-  <div class="sport-panel" id="panel-nba">
-    <div class="scoreboard-grid" id="scores-nba"></div>
-  </div>
-  <!-- NFL Panel -->
-  <div class="sport-panel" id="panel-nfl">
-    <div class="scoreboard-grid" id="scores-nfl"></div>
-  </div>
-  <!-- NHL Panel -->
-  <div class="sport-panel" id="panel-nhl">
-    <div class="scoreboard-grid" id="scores-nhl"></div>
-  </div>
-  <!-- MLS Panel -->
-  <div class="sport-panel" id="panel-mls">
-    <div class="scoreboard-grid" id="scores-mls"></div>
-  </div>
+  <div id="panels-container"></div>
   <!-- LOCAL HIGH SCHOOL SCORES -->
   <div class="predict-section" style="margin-bottom:2rem; grid-template-columns: 1fr;">
     <div class="predict-board glass" style="border-top:1px solid rgba(252, 194, 0, 0.4); box-shadow:0 4px 20px rgba(14, 51, 134, 0.3);">
@@ -1430,6 +1411,19 @@ function rotateLore() {
 }
 
 // ── INIT ──
+function initPanels() {
+  const container = document.getElementById('panels-container');
+  if (container) {
+    const sportsList = ['mlb', 'nba', 'nfl', 'nhl', 'mls'];
+    container.innerHTML = sportsList.map(s => `
+      <div class="sport-panel ${s === activeSport ? 'active' : ''}" id="panel-${s}">
+        <div class="scoreboard-grid" id="scores-${s}"></div>
+      </div>
+    `).join('');
+  }
+}
+
+initPanels();
 refreshAll().then(() => renderTerpenes());
 rotateLore();
 rotateNews();
