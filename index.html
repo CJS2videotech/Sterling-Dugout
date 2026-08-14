@@ -1251,6 +1251,42 @@ const TERPENE_DB = {
   ]
 };
 
+function determineTeamMood(state, chiScore, oppScore, chiName, detail) {
+  let mood = 'chill';
+  let trigger = `${chiName} game coming up — pregame vibes`;
+
+  if (state === 'in') {
+    const diff = chiScore - oppScore;
+
+    if (diff >= 5) {
+      mood = 'energy';
+      trigger = `${chiName} dominating ${chiScore}-${oppScore} ${detail} — MAX VIBES`;
+    } else if (diff > 0) {
+      mood = 'celebrate';
+      trigger = `${chiName} leading ${chiScore}-${oppScore} ${detail} — riding high`;
+    } else if (diff === 0) {
+      mood = 'focus';
+      trigger = `${chiName} tied ${chiScore}-${oppScore} ${detail} — locked in`;
+    } else if (diff >= -3) {
+      mood = 'focus';
+      trigger = `${chiName} down ${chiScore}-${oppScore} ${detail} — comeback mode`;
+    } else {
+      mood = 'calm';
+      trigger = `${chiName} trailing ${chiScore}-${oppScore} ${detail} — stay chill`;
+    }
+  } else if (state === 'post') {
+    if (chiScore > oppScore) {
+      mood = 'celebrate';
+      trigger = `${chiName} won ${chiScore}-${oppScore} — time to celebrate`;
+    } else {
+      mood = 'calm';
+      trigger = `${chiName} fell ${chiScore}-${oppScore} — relax and reset`;
+    }
+  }
+
+  return { mood, trigger };
+}
+
 function analyzeAllTeamMoods(){
   /* Returns an array of { teamName, mood, trigger, sport } for EACH Chicago team game today */
   const teamMoods = [];
@@ -1275,43 +1311,11 @@ function analyzeAllTeamMoods(){
       const chiName = chiTeam?.name || 'Chicago';
       const chiColor = chiTeam?.accent || '#4ade80';
 
-      let mood = 'chill';
-      let trigger = `${chiName} game coming up — pregame vibes`;
+      const chiScore = parseInt(chiComp?.score || 0);
+      const oppScore = parseInt(oppComp?.score || 0);
+      const detail = status?.type?.shortDetail || '';
 
-      if(state === 'in'){
-        const chiScore = parseInt(chiComp.score || 0);
-        const oppScore = parseInt(oppComp.score || 0);
-        const diff = chiScore - oppScore;
-        const detail = status?.type?.shortDetail || '';
-
-        if(diff >= 5){
-          mood = 'energy';
-          trigger = `${chiName} dominating ${chiScore}-${oppScore} ${detail} — MAX VIBES`;
-        } else if(diff > 0){
-          mood = 'celebrate';
-          trigger = `${chiName} leading ${chiScore}-${oppScore} ${detail} — riding high`;
-        } else if(diff === 0){
-          mood = 'focus';
-          trigger = `${chiName} tied ${chiScore}-${oppScore} ${detail} — locked in`;
-        } else if(diff >= -3){
-          mood = 'focus';
-          trigger = `${chiName} down ${chiScore}-${oppScore} ${detail} — comeback mode`;
-        } else {
-          mood = 'calm';
-          trigger = `${chiName} trailing ${chiScore}-${oppScore} ${detail} — stay chill`;
-        }
-      } else if(state === 'post'){
-        const chiScore = parseInt(chiComp.score || 0);
-        const oppScore = parseInt(oppComp.score || 0);
-
-        if(chiScore > oppScore){
-          mood = 'celebrate';
-          trigger = `${chiName} won ${chiScore}-${oppScore} — time to celebrate`;
-        } else {
-          mood = 'calm';
-          trigger = `${chiName} fell ${chiScore}-${oppScore} — relax and reset`;
-        }
-      }
+      const { mood, trigger } = determineTeamMood(state, chiScore, oppScore, chiName, detail);
 
       teamMoods.push({ teamName: chiName, mood, trigger, sport: sport.toUpperCase(), color: chiColor });
     });
