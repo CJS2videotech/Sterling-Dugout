@@ -1,0 +1,26 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "Welcome to the **Sterling Dugout**, the ultimate local sports dashboard blending real-time Chicago & Illinois professional/college sports, Sterling High School local feeds, and a very special \"Terpene Advisor\" featuring a positive rotating Good News Ticker—all wrapped in a sleek, mobile-optimized dark mode UI.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CJS2videotech/Sterling-Dugout.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/CJS2videotech/Sterling-Dugout/issues"
+  },
+  "homepage": "https://github.com/CJS2videotech/Sterling-Dugout#readme",
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
+    "jsdom": "^29.1.1"
+  }
+}
