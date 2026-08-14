@@ -907,7 +907,15 @@ function populateGamePicker(){
       else if(sport === 'ncaamb') badge = '🏀 ';
 
       const label = `${badge}[${sport.toUpperCase()}] ${away.team.abbreviation || away.team.shortDisplayName} @ ${home.team.abbreviation || home.team.shortDisplayName}`;
-      sel.innerHTML += `<option value="${ev.id}" data-sport="${sport}" data-home-id="${home.team.id}" data-home-name="${home.team.shortDisplayName}" data-away-id="${away.team.id}" data-away-name="${away.team.shortDisplayName}">${label}</option>`;
+      const opt = document.createElement('option');
+      opt.value = ev.id;
+      opt.dataset.sport = sport;
+      opt.dataset.homeId = home.team.id;
+      opt.dataset.homeName = home.team.shortDisplayName;
+      opt.dataset.awayId = away.team.id;
+      opt.dataset.awayName = away.team.shortDisplayName;
+      opt.textContent = label;
+      sel.appendChild(opt);
       gameCount++;
     });
   });
@@ -920,8 +928,16 @@ function populateGamePicker(){
     const opt = sel.options[sel.selectedIndex];
     winSel.innerHTML = '<option value="">— Pick winner —</option>';
     if(!opt.value) return;
-    winSel.innerHTML += `<option value="${opt.dataset.awayId}">${opt.dataset.awayName}</option>`;
-    winSel.innerHTML += `<option value="${opt.dataset.homeId}">${opt.dataset.homeName}</option>`;
+
+    const awayOpt = document.createElement('option');
+    awayOpt.value = opt.dataset.awayId;
+    awayOpt.textContent = opt.dataset.awayName;
+    winSel.appendChild(awayOpt);
+
+    const homeOpt = document.createElement('option');
+    homeOpt.value = opt.dataset.homeId;
+    homeOpt.textContent = opt.dataset.homeName;
+    winSel.appendChild(homeOpt);
   };
 }
 
