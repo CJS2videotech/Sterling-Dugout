@@ -960,16 +960,15 @@ function submitPick(){
   });
 
   savePicks(picks);
-  renderLeaderboard();
-  renderPickHistory();
+  renderLeaderboard(picks);
+  renderPickHistory(picks);
 
   // Reset selectors
   gameSel.selectedIndex = 0;
   winnerSel.innerHTML = '<option value="">Select game first</option>';
 }
 
-async function resolvePickResults(){
-  const picks = getPicks();
+async function resolvePickResults(picks = getPicks()){
   let changed = false;
 
   for(let i=0; i<picks.length; i++){
@@ -1017,13 +1016,12 @@ async function resolvePickResults(){
 
   if(changed){
     savePicks(picks);
-    renderLeaderboard();
-    renderPickHistory();
+    renderLeaderboard(picks);
+    renderPickHistory(picks);
   }
 }
 
-function renderLeaderboard(){
-  const picks = getPicks();
+function renderLeaderboard(picks = getPicks()){
   const el = document.getElementById('lb-content');
 
   const stats = { cj: { correct:0, total:0, streak:0 }, jesse: { correct:0, total:0, streak:0 } };
@@ -1077,8 +1075,7 @@ function renderLeaderboard(){
   `;
 }
 
-function renderPickHistory(){
-  const picks = getPicks();
+function renderPickHistory(picks = getPicks()){
   const el = document.getElementById('pick-history');
 
   const recent = picks.slice(-20).reverse();
@@ -1117,9 +1114,10 @@ async function refreshAll(){
   await Promise.all(sports.map(s => loadScores(s)));
 
   populateGamePicker();
-  resolvePickResults();
-  renderLeaderboard();
-  renderPickHistory();
+  const picks = getPicks();
+  resolvePickResults(picks);
+  renderLeaderboard(picks);
+  renderPickHistory(picks);
 
   if(btn) btn.classList.remove('is-loading');
 }
