@@ -968,6 +968,31 @@ function submitPick(){
   winnerSel.innerHTML = '<option value="">Select game first</option>';
 }
 
+async function fetchGameFromESPN(sport, gameId) {
+  try {
+    const { sport: s, league: l } = SPORT_MAP[sport];
+    const r = await fetch(`${ESPN_BASE}/${s}/${l}/summary?event=${gameId}`);
+    const data = await r.json();
+    if(data.header && data.header.competitions) {
+      return { competitions: data.header.competitions, status: data.header.competitions[0].status };
+    }
+  } catch(e) {
+    console.error('Failed to resolve past pick', e);
+  }
+  return null;
+}
+
+function calculateGameWinner(comp) {
+  const home = comp.competitors.find(c => c.homeAway === 'home');
+  const away = comp.competitors.find(c => c.homeAway === 'away');
+  const homeScore = parseInt(home.score || 0);
+  const awayScore = parseInt(away.score || 0);
+
+  if(homeScore > awayScore) return String(home.team.id || home.id);
+  if(awayScore > homeScore) return String(away.team.id || away.id);
+  return null;
+}
+
 async function resolvePickResults(){
   const picks = getPicks();
   let changed = false;
@@ -981,14 +1006,7 @@ async function resolvePickResults(){
     
     // If game is not in today's cache, fetch from ESPN directly to resolve past pending picks
     if(!game){
-      try {
-        const { sport: s, league: l } = SPORT_MAP[pick.sport];
-        const r = await fetch(`${ESPN_BASE}/${s}/${l}/summary?event=${pick.gameId}`);
-        const data = await r.json();
-        if(data.header && data.header.competitions) {
-          game = { competitions: data.header.competitions, status: data.header.competitions[0].status };
-        }
-      } catch(e) { console.error('Failed to resolve past pick', e); }
+      game = await fetchGameFromESPN(pick.sport, pick.gameId);
     }
 
     if(!game) continue;
@@ -999,14 +1017,7 @@ async function resolvePickResults(){
 
     if(state === 'post'){
       // Game is final — determine winner
-      const home = comp.competitors.find(c => c.homeAway === 'home');
-      const away = comp.competitors.find(c => c.homeAway === 'away');
-      const homeScore = parseInt(home.score || 0);
-      const awayScore = parseInt(away.score || 0);
-
-      let winnerId = null;
-      if(homeScore > awayScore) winnerId = String(home.team.id || home.id);
-      else if(awayScore > homeScore) winnerId = String(away.team.id || away.id);
+      const winnerId = calculateGameWinner(comp);
 
       if(winnerId){
         pick.result = (String(pick.teamPicked) === winnerId) ? 'correct' : 'wrong';
