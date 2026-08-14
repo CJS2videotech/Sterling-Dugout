@@ -972,9 +972,8 @@ async function resolvePickResults(){
   const picks = getPicks();
   let changed = false;
 
-  for(let i=0; i<picks.length; i++){
-    const pick = picks[i];
-    if(pick.result !== 'pending') continue;
+  const fetchPromises = picks.map(async (pick) => {
+    if(pick.result !== 'pending') return null;
 
     const sportGames = allGamesCache[pick.sport] || [];
     let game = sportGames.find(ev => ev.id === pick.gameId);
@@ -991,8 +990,15 @@ async function resolvePickResults(){
       } catch(e) { console.error('Failed to resolve past pick', e); }
     }
 
-    if(!game) continue;
+    return { pick, game };
+  });
 
+  const resolvedData = await Promise.all(fetchPromises);
+
+  for (const data of resolvedData) {
+    if(!data || !data.game) continue;
+
+    const { pick, game } = data;
     const comp = game.competitions[0];
     const status = comp.status || game.status;
     const state = status?.type?.state;
