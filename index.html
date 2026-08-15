@@ -634,6 +634,18 @@ footer{
 <footer><span class="canna-icon sm"></span> Data via ESPN · Auto-refreshes every 60s · Sterling Dugout © 2026 · Crafted in Sterling, IL <span class="canna-icon sm"></span></footer>
 
 <script>
+
+function escapeHTML(str) {
+  if (typeof str !== 'string') return str;
+  return str.replace(/[&<>'"]/g, tag => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;'
+  }[tag]));
+}
+
 /* ═══════════════════════════════════════════════════
    STERLING DUGOUT — Chicago Sports Dashboard
    ═══════════════════════════════════════════════════ */
@@ -1099,8 +1111,8 @@ function renderPickHistory(){
     else if(p.result === 'wrong'){ resultClass = 'pick-wrong'; resultText = '❌ Wrong'; }
 
     return `<div class="pick-entry">
-      <span class="pick-date">${p.date.slice(5)}</span>
-      <span class="pick-team"><strong style="color:#fff;text-transform:uppercase;">${p.who}</strong> → ${p.teamName}</span>
+      <span class="pick-date">${escapeHTML(p.date.slice(5))}</span>
+      <span class="pick-team"><strong style="color:#fff;text-transform:uppercase;">${escapeHTML(p.who)}</strong> → ${escapeHTML(p.teamName)}</span>
       <span class="pick-result ${resultClass}">${resultText}</span>
     </div>`;
   }).join('');
