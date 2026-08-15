@@ -686,7 +686,7 @@ function changeDay(delta) {
   }
   
   // Clear grids for visual feedback that we are loading a new day
-  ['mlb','nba','nfl','nhl','mls'].forEach(s => {
+  Object.keys(SPORT_MAP).forEach(s => {
     const el = document.getElementById('scores-'+s);
     if(el) el.innerHTML = '<div class="no-game glass">Loading...</div>';
   });
@@ -1132,7 +1132,7 @@ async function refreshAll(){
   const btn = document.getElementById('btn-refresh');
   if(btn) btn.classList.add('is-loading');
 
-  const sports = ['mlb','nba','nfl','nhl','mls','ncaamb'];
+  const sports = Object.keys(SPORT_MAP);
   await Promise.all(sports.map(s => loadScores(s)));
 
   populateGamePicker();
@@ -1466,7 +1466,7 @@ refreshAll().then(() => renderTerpenes());
 rotateLore();
 rotateNews();
 setInterval(async () => {
-  const sports = ['mlb','nba','nfl','nhl','mls','ncaamb'];
+  const sports = Object.keys(SPORT_MAP);
   await Promise.all(sports.map(s => loadScores(s)));
   resolvePickResults();
   renderTerpenes();
