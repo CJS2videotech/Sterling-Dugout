@@ -881,6 +881,7 @@ function populateGamePicker(){
   const sel = document.getElementById('pick-game');
   const winSel = document.getElementById('pick-winner');
   sel.innerHTML = '<option value="">— Select a game —</option>';
+  let optionsHTML = [];
 
   // Gather all today's Chicago games across all sports
   let gameCount = 0;
@@ -907,10 +908,14 @@ function populateGamePicker(){
       else if(sport === 'ncaamb') badge = '🏀 ';
 
       const label = `${badge}[${sport.toUpperCase()}] ${away.team.abbreviation || away.team.shortDisplayName} @ ${home.team.abbreviation || home.team.shortDisplayName}`;
-      sel.innerHTML += `<option value="${ev.id}" data-sport="${sport}" data-home-id="${home.team.id}" data-home-name="${home.team.shortDisplayName}" data-away-id="${away.team.id}" data-away-name="${away.team.shortDisplayName}">${label}</option>`;
+      optionsHTML.push(`<option value="${ev.id}" data-sport="${sport}" data-home-id="${home.team.id}" data-home-name="${home.team.shortDisplayName}" data-away-id="${away.team.id}" data-away-name="${away.team.shortDisplayName}">${label}</option>`);
       gameCount++;
     });
   });
+
+  if (gameCount > 0) {
+    sel.innerHTML += optionsHTML.join('');
+  }
 
   if (gameCount === 0) {
     sel.innerHTML = '<option value="">No upcoming games to pick</option>';
