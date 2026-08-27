@@ -916,10 +916,12 @@ function populateGamePicker(){
 
   sel.onchange = function(){
     const opt = sel.options[sel.selectedIndex];
-    winSel.innerHTML = '<option value="">— Pick winner —</option>';
-    if(!opt.value) return;
-    winSel.innerHTML += `<option value="${opt.dataset.awayId}">${opt.dataset.awayName}</option>`;
-    winSel.innerHTML += `<option value="${opt.dataset.homeId}">${opt.dataset.homeName}</option>`;
+    let html = '<option value="">— Pick winner —</option>';
+    if(opt.value) {
+      html += `<option value="${opt.dataset.awayId}">${opt.dataset.awayName}</option>`;
+      html += `<option value="${opt.dataset.homeId}">${opt.dataset.homeName}</option>`;
+    }
+    winSel.innerHTML = html;
   };
 }
 
