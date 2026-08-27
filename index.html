@@ -862,6 +862,20 @@ async function loadScores(sport){
 // ═══════════════════════════════════════
 const LS_PICKS = 'sterlingDugout_picks';
 
+function getPlayerProfile(who) {
+  const playerProfiles = {
+    cj: { name: 'CJ', img: 'assets/cj.jpg', color: '#cc3433', bg: '#0e3386', fallbackText: 'CJ' },
+    jesse: { name: 'Jesse', img: 'assets/Jesse.jpg', color: '#c83803', bg: '#c83803', fallbackText: 'JES' }
+  };
+  return playerProfiles[who] || {
+    name: who.toUpperCase(),
+    img: `assets/${who}.jpg`,
+    color: '#ffffff',
+    bg: '#333333',
+    fallbackText: who.substring(0,3).toUpperCase()
+  };
+}
+
 function getPicks(){
   try { return JSON.parse(localStorage.getItem(LS_PICKS)) || []; }
   catch(e){ return []; }
@@ -1057,24 +1071,12 @@ function renderLeaderboard(){
   const isTied = leaders.length > 1;
   const hasPicks = Math.max(0, ...players.map(who => stats[who].total)) > 0;
 
-  // Static profile details for the original core users, generating fallbacks for newly added players
-  const playerProfiles = {
-    cj: { name: 'CJ', img: 'assets/cj.jpg', color: '#cc3433', bg: '#0e3386', fallbackText: 'CJ' },
-    jesse: { name: 'Jesse', img: 'assets/Jesse.jpg', color: '#c83803', bg: '#c83803', fallbackText: 'JES' }
-  };
-
   const html = players.map(who => {
     const s = stats[who];
     const pct = s.total > 0 ? ((s.correct / s.total) * 100).toFixed(0) : '0';
     const isLeader = s.correct === maxCorrect && s.total > 0 && !isTied;
 
-    const prof = playerProfiles[who] || {
-      name: who.toUpperCase(),
-      img: `assets/${who}.jpg`,
-      color: '#ffffff',
-      bg: '#333333',
-      fallbackText: who.substring(0,3).toUpperCase()
-    };
+    const prof = getPlayerProfile(who);
 
     return `
       <div class="lb-card ${isLeader ? 'leader' : ''}">
