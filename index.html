@@ -694,13 +694,14 @@ function changeDay(delta) {
 }
 
 // ── HELPERS ──
+const MAJOR_EVENT_KEYWORDS = ['super bowl', 'world series', 'stanley cup', 'championship', 'final four', 'college football playoff', 'ncaa men\'s', ' nit ', 'national invitation tournament'];
+
 function isMajorEvent(event) {
   const comp = event.competitions[0];
   const notes = (comp.notes || []).map(n => n.headline || n.type || '').join(' ').toLowerCase();
   const searchStr = (event.name + ' ' + event.shortName + ' ' + notes).toLowerCase();
   
-  const keywords = ['super bowl', 'world series', 'stanley cup', 'championship', 'final four', 'college football playoff', 'ncaa men\'s', ' nit ', 'national invitation tournament'];
-  return keywords.some(k => searchStr.includes(k));
+  return MAJOR_EVENT_KEYWORDS.some(k => searchStr.includes(k));
 }
 
 function pad(n){ return String(n).padStart(2,'0'); }

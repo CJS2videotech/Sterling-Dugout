@@ -8,6 +8,16 @@ describe('loadScores error path', () => {
     // Override globals
     document.documentElement.innerHTML = html.toString();
 
+    const container = document.getElementById('panels-container');
+    if (container) {
+      const sportsList = ['mlb', 'nba', 'nfl', 'nhl', 'mls'];
+      container.innerHTML = sportsList.map(s => `
+        <div class="sport-panel" id="panel-${s}">
+          <div class="scoreboard-grid" id="scores-${s}"></div>
+        </div>
+      `).join('');
+    }
+
     // Extract loadScores from script tag
     const scriptContent = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 
