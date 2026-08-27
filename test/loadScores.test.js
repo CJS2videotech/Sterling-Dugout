@@ -7,6 +7,8 @@ describe('loadScores error path', () => {
   beforeEach(() => {
     // Override globals
     document.documentElement.innerHTML = html.toString();
+    // Re-create dynamically generated container from initPanels()
+    document.body.innerHTML += '<div id="panels-container"><div id="scores-mlb"></div></div>';
 
     // Extract loadScores from script tag
     const scriptContent = html.match(/<script>([\s\S]*?)<\/script>/)[1];
