@@ -27,6 +27,16 @@ describe('loadScores error path', () => {
     global.loadScores = eval('(' + loadScoresCode.replace('async function loadScores', 'async function') + ')');
 
     global.fetch = jest.fn();
+
+    // Since index.html generates the score containers dynamically, we need to create them in the test DOM
+    const container = document.getElementById('panels-container');
+    if (container) {
+      container.innerHTML = `
+        <div class="sport-panel active" id="panel-mlb">
+          <div class="scoreboard-grid" id="scores-mlb"></div>
+        </div>
+      `;
+    }
   });
 
   afterEach(() => {
