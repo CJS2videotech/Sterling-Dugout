@@ -1078,9 +1078,9 @@ function renderLeaderboard(){
 
     return `
       <div class="lb-card ${isLeader ? 'leader' : ''}">
-        <img src="${prof.img}" class="lb-avatar" alt="${prof.name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 80%22><rect fill=%22%23${prof.bg.replace('#', '')}%22 width=%2280%22 height=%2280%22/><text x=%2240%22 y=%2250%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22 font-family=%22sans-serif%22>${prof.fallbackText}</text></svg>'">
+        <img src="${escapeHTML(prof.img)}" class="lb-avatar" alt="${escapeHTML(prof.name)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 80%22><rect fill=%22%23${escapeHTML(prof.bg).replace('#', '')}%22 width=%2280%22 height=%2280%22/><text x=%2240%22 y=%2250%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22 font-family=%22sans-serif%22>${escapeHTML(prof.fallbackText)}</text></svg>'">
         <div class="lb-info">
-          <div class="lb-name" style="color:${prof.color};">${prof.name}</div>
+          <div class="lb-name" style="color:${escapeHTML(prof.color)};">${escapeHTML(prof.name)}</div>
           <div class="lb-stats">
             <span><span class="lb-stat-val">${s.correct}</span> W</span>
             <span><span class="lb-stat-val">${s.total - s.correct}</span> L</span>
