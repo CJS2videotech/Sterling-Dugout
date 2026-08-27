@@ -1040,9 +1040,17 @@ function renderLeaderboard(){
   const stats = {};
 
   // Calculate stats dynamically
+  const groupedPicks = {};
+  picks.forEach(p => {
+    if (!groupedPicks[p.who]) {
+      groupedPicks[p.who] = [];
+    }
+    groupedPicks[p.who].push(p);
+  });
+
   players.forEach(who => {
     stats[who] = { correct: 0, total: 0, streak: 0 };
-    const userPicks = picks.filter(p => p.who === who).sort((a,b) => a.date.localeCompare(b.date));
+    const userPicks = (groupedPicks[who] || []).sort((a,b) => a.date.localeCompare(b.date));
     let currentStreak = 0;
     userPicks.forEach(p => {
       if(p.result === 'correct'){ stats[who].correct++; stats[who].total++; currentStreak++; }
