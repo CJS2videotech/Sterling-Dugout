@@ -4,7 +4,7 @@
   "description": "Welcome to the **Sterling Dugout**, the ultimate local sports dashboard blending real-time Chicago & Illinois professional/college sports, Sterling High School local feeds, and a very special \"Terpene Advisor\" featuring a positive rotating Good News Ticker—all wrapped in a sleek, mobile-optimized dark mode UI.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --forceExit"
   },
   "repository": {
     "type": "git",
