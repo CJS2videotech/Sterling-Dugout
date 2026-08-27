@@ -737,22 +737,10 @@ function getChicagoAccent(teamId, sport){
 }
 
 // ── GAME CARD RENDERER ──
-function renderGameCard(event, sport){
-  const comp = event.competitions[0];
-  const home = comp.competitors.find(c => c.homeAway === 'home');
-  const away = comp.competitors.find(c => c.homeAway === 'away');
-  const status = comp.status || event.status;
+function getGameStatusDetails(status, eventDate) {
   const state = status?.type?.state || 'pre';
   const isLive = state === 'in';
   const isFinal = state === 'post';
-
-  const homeScore = home.score || '0';
-  const awayScore = away.score || '0';
-  const hasScore = isLive || isFinal;
-
-  const homeWin = isFinal && parseInt(homeScore) > parseInt(awayScore);
-  const awayWin = isFinal && parseInt(awayScore) > parseInt(homeScore);
-
   let statusText = '';
   let statusClass = '';
   let badge = '';
@@ -764,46 +752,59 @@ function renderGameCard(event, sport){
   } else if(isFinal){
     statusText = status?.type?.shortDetail || 'Final';
   } else {
-    statusText = fmtTime(event.date);
+    statusText = fmtTime(eventDate);
   }
 
-  const homeLogo = home.team.logo || `https://a.espncdn.com/i/teamlogos/${SPORT_MAP[sport].league}/500/scoreboard/${home.team.abbreviation?.toLowerCase()}.png`;
-  const awayLogo = away.team.logo || `https://a.espncdn.com/i/teamlogos/${SPORT_MAP[sport].league}/500/scoreboard/${away.team.abbreviation?.toLowerCase()}.png`;
+  return { isLive, isFinal, statusText, statusClass, badge };
+}
 
-  const homeIsChicago = isChicagoTeam(home.team.id, sport);
-  const awayIsChicago = isChicagoTeam(away.team.id, sport);
+function getTeamDetails(competitor, sport) {
+  const isChicago = isChicagoTeam(competitor.team.id, sport);
+  const nameStyle = isChicago ? `color:${getChicagoAccent(competitor.team.id, sport)};font-weight:700;` : '';
+  const logo = competitor.team.logo || `https://a.espncdn.com/i/teamlogos/${SPORT_MAP[sport].league}/500/scoreboard/${competitor.team.abbreviation?.toLowerCase()}.png`;
+  const record = competitor.records?.[0]?.summary || '';
+  const score = competitor.score || '0';
 
-  const homeNameStyle = homeIsChicago ? `color:${getChicagoAccent(home.team.id, sport)};font-weight:700;` : '';
-  const awayNameStyle = awayIsChicago ? `color:${getChicagoAccent(away.team.id, sport)};font-weight:700;` : '';
+  return { isChicago, nameStyle, logo, record, score };
+}
+
+function renderGameCard(event, sport){
+  const comp = event.competitions[0];
+  const home = comp.competitors.find(c => c.homeAway === 'home');
+  const away = comp.competitors.find(c => c.homeAway === 'away');
+  const status = comp.status || event.status;
+
+  const { isLive, isFinal, statusText, statusClass, badge } = getGameStatusDetails(status, event.date);
+  const homeDetails = getTeamDetails(home, sport);
+  const awayDetails = getTeamDetails(away, sport);
+
+  const hasScore = isLive || isFinal;
+  const homeWin = isFinal && parseInt(homeDetails.score) > parseInt(awayDetails.score);
+  const awayWin = isFinal && parseInt(awayDetails.score) > parseInt(homeDetails.score);
 
   const venue = comp.venue?.fullName || '';
   const broadcast = comp.broadcasts?.[0]?.names?.[0] || '';
-
-  let homeRec = '';
-  let awayRec = '';
-  if(home.records) homeRec = home.records[0]?.summary || '';
-  if(away.records) awayRec = away.records[0]?.summary || '';
 
   return `
     <div class="gcard glass ${isLive?'gcard-live':''}">
       ${badge}
       <div class="matchup">
         <div class="tm ${isFinal && !awayWin ? 'dim' : ''}">
-          <img src="${awayLogo}" class="tm-logo" alt="${away.team.abbreviation}" onerror="this.style.display='none'">
-          <div class="tm-name" style="${awayNameStyle}">${away.team.abbreviation || away.team.shortDisplayName}</div>
-          <div class="tm-rec">${awayRec}</div>
+          <img src="${awayDetails.logo}" class="tm-logo" alt="${away.team.abbreviation}" onerror="this.style.display='none'">
+          <div class="tm-name" style="${awayDetails.nameStyle}">${away.team.abbreviation || away.team.shortDisplayName}</div>
+          <div class="tm-rec">${awayDetails.record}</div>
         </div>
         <div class="smid">
           ${hasScore
-            ? `<div class="score">${awayScore} – ${homeScore}</div>`
+            ? `<div class="score">${awayDetails.score} – ${homeDetails.score}</div>`
             : `<div class="vs-txt">VS</div>`
           }
           <div class="gstat ${statusClass}">${statusText}</div>
         </div>
         <div class="tm ${isFinal && !homeWin ? 'dim' : ''}">
-          <img src="${homeLogo}" class="tm-logo" alt="${home.team.abbreviation}" onerror="this.style.display='none'">
-          <div class="tm-name" style="${homeNameStyle}">${home.team.abbreviation || home.team.shortDisplayName}</div>
-          <div class="tm-rec">${homeRec}</div>
+          <img src="${homeDetails.logo}" class="tm-logo" alt="${home.team.abbreviation}" onerror="this.style.display='none'">
+          <div class="tm-name" style="${homeDetails.nameStyle}">${home.team.abbreviation || home.team.shortDisplayName}</div>
+          <div class="tm-rec">${homeDetails.record}</div>
         </div>
       </div>
       <div class="gfooter">

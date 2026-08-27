@@ -34,7 +34,8 @@ describe('loadScores error path', () => {
   });
 
   it('shows error message when fetch fails and container is empty', async () => {
-    const el = document.getElementById('scores-mlb');
+    let el = document.getElementById('scores-mlb');
+    if (!el) { el = document.createElement('div'); el.id = 'scores-mlb'; document.body.appendChild(el); }
     el.innerHTML = '';
 
     global.fetch.mockRejectedValue(new Error('Network error'));
@@ -45,7 +46,8 @@ describe('loadScores error path', () => {
   });
 
   it('shows error message when fetch fails and container shows Loading...', async () => {
-    const el = document.getElementById('scores-mlb');
+    let el = document.getElementById('scores-mlb');
+    if (!el) { el = document.createElement('div'); el.id = 'scores-mlb'; document.body.appendChild(el); }
     el.innerHTML = '<div class="no-game glass">Loading...</div>';
 
     global.fetch.mockRejectedValue(new Error('Network error'));
@@ -56,7 +58,8 @@ describe('loadScores error path', () => {
   });
 
   it('does not overwrite existing scores when fetch fails', async () => {
-    const el = document.getElementById('scores-mlb');
+    let el = document.getElementById('scores-mlb');
+    if (!el) { el = document.createElement('div'); el.id = 'scores-mlb'; document.body.appendChild(el); }
     const existingScores = '<div class="game-card">Cubs vs Cardinals</div>';
     el.innerHTML = existingScores;
 
@@ -69,7 +72,8 @@ describe('loadScores error path', () => {
 
   it('handles gracefully when container does not exist', async () => {
     // Remove the element from DOM
-    const el = document.getElementById('scores-mlb');
+    let el = document.getElementById('scores-mlb');
+    if (!el) { el = document.createElement('div'); el.id = 'scores-mlb'; document.body.appendChild(el); }
     if (el) el.remove();
 
     global.fetch.mockRejectedValue(new Error('Network error'));
