@@ -27,6 +27,12 @@ describe('loadScores error path', () => {
     global.loadScores = eval('(' + loadScoresCode.replace('async function loadScores', 'async function') + ')');
 
     global.fetch = jest.fn();
+
+    // Create the container so scores-mlb exists
+    const container = document.getElementById('panels-container');
+    if (container) {
+      container.innerHTML = '<div id="scores-mlb"></div>';
+    }
   });
 
   afterEach(() => {

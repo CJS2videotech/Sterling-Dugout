@@ -900,8 +900,8 @@ function populateGamePicker(){
       if(isMajor && !isChicago) badge = '🏆 ';
       else if(sport === 'ncaamb') badge = '🏀 ';
 
-      const label = `${badge}[${sport.toUpperCase()}] ${away.team.abbreviation || away.team.shortDisplayName} @ ${home.team.abbreviation || home.team.shortDisplayName}`;
-      optionsHTML.push(`<option value="${ev.id}" data-sport="${sport}" data-home-id="${home.team.id}" data-home-name="${home.team.shortDisplayName}" data-away-id="${away.team.id}" data-away-name="${away.team.shortDisplayName}">${label}</option>`);
+      const label = `${badge}[${sport.toUpperCase()}] ${escapeHTML(away.team.abbreviation || away.team.shortDisplayName)} @ ${escapeHTML(home.team.abbreviation || home.team.shortDisplayName)}`;
+      optionsHTML.push(`<option value="${ev.id}" data-sport="${sport}" data-home-id="${home.team.id}" data-home-name="${escapeHTML(home.team.shortDisplayName)}" data-away-id="${away.team.id}" data-away-name="${escapeHTML(away.team.shortDisplayName)}">${label}</option>`);
       gameCount++;
     });
   });
@@ -918,8 +918,8 @@ function populateGamePicker(){
     const opt = sel.options[sel.selectedIndex];
     winSel.innerHTML = '<option value="">— Pick winner —</option>';
     if(!opt.value) return;
-    winSel.innerHTML += `<option value="${opt.dataset.awayId}">${opt.dataset.awayName}</option>`;
-    winSel.innerHTML += `<option value="${opt.dataset.homeId}">${opt.dataset.homeName}</option>`;
+    winSel.innerHTML += `<option value="${opt.dataset.awayId}">${escapeHTML(opt.dataset.awayName)}</option>`;
+    winSel.innerHTML += `<option value="${opt.dataset.homeId}">${escapeHTML(opt.dataset.homeName)}</option>`;
   };
 }
 
