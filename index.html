@@ -861,12 +861,18 @@ async function loadScores(sport){
 //  PREDICTION LEADERBOARD (CJ vs Jesse)
 // ═══════════════════════════════════════
 const LS_PICKS = 'sterlingDugout_picks';
+let cachedPicks = null;
 
 function getPicks(){
-  try { return JSON.parse(localStorage.getItem(LS_PICKS)) || []; }
+  if (cachedPicks) return cachedPicks;
+  try {
+    cachedPicks = JSON.parse(localStorage.getItem(LS_PICKS)) || [];
+    return cachedPicks;
+  }
   catch(e){ return []; }
 }
 function savePicks(picks){
+  cachedPicks = picks;
   localStorage.setItem(LS_PICKS, JSON.stringify(picks));
 }
 
