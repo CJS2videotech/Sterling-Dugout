@@ -7,6 +7,9 @@ describe('loadScores error path', () => {
   beforeEach(() => {
     // Override globals
     document.documentElement.innerHTML = html.toString();
+    const container = document.createElement('div');
+    container.id = 'scores-mlb';
+    document.body.appendChild(container);
 
     // Extract loadScores from script tag
     const scriptContent = html.match(/<script>([\s\S]*?)<\/script>/)[1];
