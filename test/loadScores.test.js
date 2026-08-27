@@ -8,6 +8,15 @@ describe('loadScores error path', () => {
     // Override globals
     document.documentElement.innerHTML = html.toString();
 
+    // Set up the required DOM elements that initPanels would create
+    document.body.innerHTML = `
+      <div id="panels-container">
+        <div class="sport-panel active" id="panel-mlb">
+          <div class="scoreboard-grid" id="scores-mlb"></div>
+        </div>
+      </div>
+    `;
+
     // Extract loadScores from script tag
     const scriptContent = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 
