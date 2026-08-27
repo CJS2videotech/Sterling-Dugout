@@ -8,6 +8,25 @@ describe('loadScores error path', () => {
     // Override globals
     document.documentElement.innerHTML = html.toString();
 
+    // Set up the container structure expected by loadScores tests
+    const panelsContainer = document.getElementById('panels-container');
+    if (panelsContainer) {
+      const sportsList = ['mlb', 'nba', 'nfl', 'nhl', 'mls'];
+      panelsContainer.innerHTML = sportsList.map(s => `
+        <div class="sport-panel" id="panel-${s}">
+          <div class="scoreboard-grid" id="scores-${s}"></div>
+        </div>
+      `).join('');
+    } else {
+      document.body.innerHTML += `
+        <div id="panels-container">
+          <div class="sport-panel" id="panel-mlb">
+            <div class="scoreboard-grid" id="scores-mlb"></div>
+          </div>
+        </div>
+      `;
+    }
+
     // Extract loadScores from script tag
     const scriptContent = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 
