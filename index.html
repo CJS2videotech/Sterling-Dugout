@@ -1343,6 +1343,22 @@ function analyzeAllTeamMoods(){
   return teamMoods;
 }
 
+function renderTerpeneCard(t, mood, trigger) {
+  const LEAF = `<span class="canna-icon sm"></span>`;
+  return `
+    <div class="terp-card ${mood}">
+      <div class="terp-mood">${t.emoji} ${mood.toUpperCase()} MODE</div>
+      <div class="terp-name">${t.name}</div>
+      <div class="terp-terpene">${LEAF} ${t.terpene}</div>
+      <div class="terp-desc">${t.desc}</div>
+      <div class="terp-tags">
+        ${t.tags.map(tag => `<span class="terp-tag">${tag}</span>`).join('')}
+      </div>
+      <div class="terp-trigger">${LEAF} ${trigger}</div>
+    </div>
+  `;
+}
+
 function renderTerpenes(){
   const teamMoods = analyzeAllTeamMoods();
   const el = document.getElementById('terp-grid');
@@ -1355,18 +1371,7 @@ function renderTerpenes(){
       <div style="grid-column:1/-1;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:1px;color:var(--herb);text-transform:uppercase;padding:4px 0;display:flex;align-items:center;gap:6px;">
         ${LEAF} No Chicago Games Today — Chill Mode
       </div>
-    ` + recs.map(t => `
-      <div class="terp-card chill">
-        <div class="terp-mood">${t.emoji} CHILL MODE</div>
-        <div class="terp-name">${t.name}</div>
-        <div class="terp-terpene">${LEAF} ${t.terpene}</div>
-        <div class="terp-desc">${t.desc}</div>
-        <div class="terp-tags">
-          ${t.tags.map(tag => `<span class="terp-tag">${tag}</span>`).join('')}
-        </div>
-        <div class="terp-trigger">${LEAF} No games tonight — enjoy the downtime</div>
-      </div>
-    `).join('');
+    ` + recs.map(t => renderTerpeneCard(t, 'chill', 'No games tonight — enjoy the downtime')).join('');
     return;
   }
 
@@ -1384,18 +1389,7 @@ function renderTerpenes(){
       </div>
     `;
 
-    html += picks.map(t => `
-      <div class="terp-card ${tm.mood}">
-        <div class="terp-mood">${t.emoji} ${tm.mood.toUpperCase()} MODE</div>
-        <div class="terp-name">${t.name}</div>
-        <div class="terp-terpene">${LEAF} ${t.terpene}</div>
-        <div class="terp-desc">${t.desc}</div>
-        <div class="terp-tags">
-          ${t.tags.map(tag => `<span class="terp-tag">${tag}</span>`).join('')}
-        </div>
-        <div class="terp-trigger">${LEAF} ${tm.trigger}</div>
-      </div>
-    `).join('');
+    html += picks.map(t => renderTerpeneCard(t, tm.mood, tm.trigger)).join('');
   });
 
   el.innerHTML = html;
