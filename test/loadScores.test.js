@@ -6,7 +6,7 @@ const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
 describe('loadScores error path', () => {
   beforeEach(() => {
     // Override globals
-    document.documentElement.innerHTML = html.toString();
+    document.documentElement.innerHTML = html.toString(); document.body.innerHTML += `<div id="scores-mlb"></div>`;
 
     // Extract loadScores from script tag
     const scriptContent = html.match(/<script>([\s\S]*?)<\/script>/)[1];
