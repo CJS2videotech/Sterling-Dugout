@@ -11,6 +11,12 @@ describe('loadScores error path', () => {
     // Extract loadScores from script tag
     const scriptContent = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 
+    const initPanelsMatch = scriptContent.match(/(function initPanels\(\)[\s\S]*?\n\})/);
+    if (initPanelsMatch) {
+      global.activeSport = "mlb";
+      eval("(" + initPanelsMatch[1] + ")()")
+    }
+
     // Find just the function we care about instead of evaluating everything
     const loadScoresMatch = scriptContent.match(/(async function loadScores\([\s\S]*?\n\})/);
     let loadScoresCode = loadScoresMatch[1];
